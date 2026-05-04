@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback-Frenzy: Björn's Mainframe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- CRT Overlay -->
+    <div id="crt-overlay"></div>
+    <div id="scanlines"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div id="hud-left">
+        <div class="hud-label">SYMPATHY SCORE</div>
+        <div id="score-display">
+          <span id="score-value">0</span>
+          <div id="score-bar-container">
+            <div id="score-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div id="hud-center">
+        <div id="game-title">BJÖRN'S MAINFRAME</div>
+        <div id="level-display">LEVEL <span id="level-value">1</span></div>
+      </div>
+      <div id="hud-right">
+        <div class="hud-label">ENCOUNTERS</div>
+        <div id="encounter-count">0</div>
+        <div class="hud-label" style="margin-top:8px">CONTROLS</div>
+        <div id="controls-hint">WASD / ↑↓←→</div>
+      </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="gameCanvas" width="800" height="560"></canvas>
+
+    <!-- Particle Canvas (overlay) -->
+    <canvas id="particleCanvas" width="800" height="560"></canvas>
+
+    <!-- Encounter / Battle UI -->
+    <div id="encounter-ui" class="hidden">
+      <div id="encounter-screen">
+        <div id="encounter-header">
+          <span id="encounter-title">FEEDBACK REQUEST</span>
+          <div id="encounter-subtitle">Ein Schüler braucht dein Feedback!</div>
+        </div>
+        <div id="encounter-arena">
+          <div id="student-side">
+            <div id="student-avatar-container">
+              <canvas id="student-avatar" width="120" height="120"></canvas>
+              <div id="student-glow"></div>
+            </div>
+            <div id="student-name-display">Student</div>
+            <div id="speech-bubble">
+              <span id="speech-text">Hier ist mein Projekt! 📁</span>
+            </div>
+          </div>
+          <div id="vs-divider">
+            <div id="vs-text">VS</div>
+            <div id="vs-sparks"></div>
+          </div>
+          <div id="bjoern-side">
+            <div id="bjoern-avatar-container">
+              <canvas id="bjoern-avatar" width="120" height="120"></canvas>
+              <div id="bjoern-glow"></div>
+            </div>
+            <div id="bjoern-name-display">BJÖRN</div>
+            <div id="bjoern-status">
+              <span class="status-dot"></span> Bereit
+            </div>
+          </div>
+        </div>
+        <div id="feedback-options">
+          <div id="feedback-label">Wähle dein Feedback:</div>
+          <div id="feedback-buttons">
+            <button class="feedback-btn" id="btn-0" onclick="selectFeedback(0)">...</button>
+            <button class="feedback-btn" id="btn-1" onclick="selectFeedback(1)">...</button>
+            <button class="feedback-btn" id="btn-2" onclick="selectFeedback(2)">...</button>
+          </div>
+        </div>
+        <div id="feedback-result" class="hidden">
+          <div id="result-text"></div>
+          <div id="points-gained"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="start-screen">
+      <div id="start-content">
+        <div id="start-logo">
+          <div id="logo-line1">FEEDBACK-FRENZY</div>
+          <div id="logo-line2">BJÖRN'S MAINFRAME</div>
+          <div id="logo-sub">v1.0 — Developer Academie Edition</div>
+        </div>
+        <div id="start-description">
+          <p>Du bist <strong>Björn</strong>, der mutigste Lehrer im Cyberspace.</p>
+          <p>Navigiere durch das Mainboard und gib deinen Schülern <em>legendäres Feedback</em>.</p>
+          <p>Sammle <strong>Sympathiepunkte</strong> – je cleverer dein Feedback, desto mehr!</p>
+        </div>
+        <button id="start-button" onclick="startGame()">
+          <span>SYSTEM STARTEN</span>
+          <div class="btn-glow"></div>
+        </button>
+        <div id="start-controls">
+          <span>WASD</span> oder <span>Pfeiltasten</span> zum Bewegen
+        </div>
+      </div>
+      <div id="matrix-bg"></div>
+    </div>
+
+    <!-- Game Over / Highscore Screen -->
+    <div id="gameover-screen" class="hidden">
+      <div id="gameover-content">
+        <div id="gameover-title">SESSION BEENDET</div>
+        <div id="gameover-score">Sympathie-Score: <span id="final-score">0</span></div>
+        <div id="gameover-rank"></div>
+        <button id="restart-button" onclick="restartGame()">NEUSTART</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
