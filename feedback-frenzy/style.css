@@ -36,7 +36,7 @@ body {
 #game-container {
   position: relative;
   width: 800px;
-  height: 640px;
+  height: 720px;
   background: var(--dark);
   border: 1px solid var(--green-dim);
   box-shadow: 0 0 40px rgba(0,255,136,0.15), 0 0 80px rgba(0,255,136,0.06), inset 0 0 40px rgba(0,0,0,0.8);
@@ -660,3 +660,164 @@ body {
   }
   #gameCanvas, #particleCanvas { width: 100%; height: auto; }
 }
+
+
+/* ══════════════════════════════════════════════════
+   BUILDINGS, GADGETS, TOAST — v2.0 additions
+   ══════════════════════════════════════════════════ */
+
+/* Building Modal */
+#building-modal {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.75);
+  z-index: 50; animation: fadeIn .2s ease;
+}
+#building-content {
+  background: #07150a; border: 2px solid #00ff88;
+  box-shadow: 0 0 40px #00ff8844, inset 0 0 20px #00110600;
+  border-radius: 4px; padding: 28px 32px; max-width: 440px; width: 92%;
+  max-height: min(78vh, 620px);
+  overflow-y: auto;
+  font-family: 'Share Tech Mono', monospace;
+}
+#building-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+#building-name {
+  font-family: 'Orbitron', monospace; font-size: 18px;
+  color: #00ff88; text-shadow: 0 0 14px #00ff88;
+}
+.building-close-btn {
+  background: none; border: 1px solid #00ff8866; color: #00ff8888;
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  padding: 4px 10px; cursor: pointer; border-radius: 3px;
+  transition: all .2s;
+}
+.building-close-btn:hover { border-color: #00ff88; color: #00ff88; background: #00ff8811; }
+#building-desc { color: #88bbaa; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+
+/* Gadget found */
+.gadget-found {
+  border: 1px solid #ffcc0088; border-radius: 4px; padding: 14px 18px;
+  background: #1a1100; text-align: center;
+}
+.gadget-icon  { font-size: 32px; margin-bottom: 6px; }
+.gadget-name  { font-size: 15px; color: #ffcc00; font-weight: bold; margin-bottom: 6px;
+  text-shadow: 0 0 10px #ffcc00; }
+.gadget-effect { font-size: 12px; color: #ccaa44; margin-bottom: 12px; }
+.gadget-collect-btn {
+  background: linear-gradient(135deg,#332200,#664400); border: 2px solid #ffcc00;
+  color: #ffcc00; font-family: 'Orbitron', monospace; font-size: 12px;
+  padding: 8px 20px; cursor: pointer; border-radius: 3px;
+  text-shadow: 0 0 8px #ffcc00; box-shadow: 0 0 15px #ffcc0044;
+  transition: all .2s;
+}
+.gadget-collect-btn:hover { background: linear-gradient(135deg,#553300,#996600); box-shadow: 0 0 25px #ffcc0088; }
+.gadget-empty { color: #446655; font-size: 13px; text-align: center; padding: 18px 0; }
+
+/* Toast */
+#toast {
+  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  background: #07150a; border: 1px solid #00ff88; border-radius: 4px;
+  color: #00ff88; font-family: 'Share Tech Mono', monospace; font-size: 12px;
+  padding: 8px 20px; white-space: nowrap; z-index: 80;
+  opacity: 0; transition: opacity .3s;
+}
+.toast-show { opacity: 1 !important; }
+
+/* Bonus indicator in HUD */
+#bonus-indicator {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  color: #ffcc00; text-shadow: 0 0 8px #ffcc00;
+  margin-top: 4px; animation: pulse 1s infinite;
+}
+
+/* Encounter feedback button sub-styles */
+.feedback-btn { position: relative; overflow: hidden; }
+.fb-intro { display: block; font-size: 12px; font-weight: bold; }
+.fb-critique { display: block; font-size: 10px; opacity: .8; font-style: italic; margin-top: 3px; }
+.fb-praise  { border-color: #ffcc00 !important; color: #ffcc00 !important; }
+.fb-praise:hover  { background: #332200 !important; box-shadow: 0 0 20px #ffcc0066 !important; }
+.fb-coach   { border-color: #00ccff !important; color: #00ccff !important; }
+.fb-coach:hover   { background: #001a22 !important; box-shadow: 0 0 20px #00ccff66 !important; }
+.fb-roast-kind { border-color: #ff8844 !important; color: #ff8844 !important; }
+.fb-roast-kind:hover { background: #220800 !important; box-shadow: 0 0 20px #ff884466 !important; }
+
+/* Project quality badges */
+.project-quality-badge {
+  display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 3px;
+  font-size: 9px; font-weight: bold; letter-spacing: .5px;
+}
+.quality-clean { background: #004422; color: #00ff88; border: 1px solid #00ff8844; }
+.quality-ok    { background: #222200; color: #ffcc00; border: 1px solid #ffcc0044; }
+.quality-chaos { background: #330000; color: #ff4444; border: 1px solid #ff444444; }
+
+/* Result block */
+.result-bjoern-quote {
+  margin-bottom: 8px; font-size: 13px; color: #ccffcc; line-height: 1.6;
+}
+.result-bjoern-quote strong { color: #00ff88; }
+.result-bjoern-quote em { color: #88ccaa; font-size: 12px; }
+.result-reaction { font-size: 15px; font-weight: bold; color: #00ff88;
+  text-shadow: 0 0 12px #00ff88; margin-top: 6px; }
+
+@keyframes fadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+
+
+/* ══════════════════════════════════════════════════
+   CAMPUS DA — error, context-menu, content
+   ══════════════════════════════════════════════════ */
+
+/* Error state */
+.campus-error { text-align:center; padding:10px 0 4px; }
+.campus-error-icon { font-size:28px; margin-bottom:6px; }
+.campus-error-title { font-family:'Orbitron',monospace; font-size:14px; color:#ff8844; text-shadow:0 0 10px #ff8844; margin-bottom:6px; }
+.campus-error-msg { font-size:11px; color:#aaa; line-height:1.6; margin-bottom:12px; }
+.campus-err-code { font-size:9px; color:#666; display:block; margin-top:3px; }
+.campus-reload-btn {
+  background:#0d1f12; border:1px solid #ff884488; color:#ff8844;
+  font-family:'Share Tech Mono',monospace; font-size:12px; padding:7px 20px;
+  cursor:pointer; border-radius:3px; transition:all .2s; margin-bottom:10px;
+}
+.campus-reload-btn:hover:not(:disabled) { border-color:#ff8844; box-shadow:0 0 12px #ff884466; }
+.campus-reload-btn:disabled { opacity:.5; cursor:not-allowed; }
+.campus-error-hint { font-size:10px; color:#556655; font-style:italic; }
+
+/* Loading */
+.campus-loading { text-align:center; padding:20px 0; color:#00ff88; font-size:12px; line-height:2; animation:pulse 1s infinite; }
+.campus-loading-sub { font-size:10px; color:#558855; }
+
+/* Fake context menu */
+.fake-ctx-menu {
+  position:fixed; z-index:9999; background:#121f14; border:1px solid #00ff8844;
+  border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,.8); min-width:180px;
+  font-family:'Share Tech Mono',monospace; font-size:12px; padding:4px 0;
+  animation:fadeIn .1s ease;
+}
+.ctx-item { padding:6px 16px; cursor:pointer; color:#aac; white-space:nowrap; transition:background .1s; }
+.ctx-item:hover:not(.ctx-disabled) { background:#1a3320; color:#fff; }
+.ctx-disabled { color:#445544; cursor:default; }
+.ctx-highlight { color:#ffcc00 !important; font-weight:bold; }
+.ctx-highlight:hover { background:#332200 !important; }
+.ctx-divider { border-top:1px solid #1a3320; margin:3px 0; }
+
+/* Campus content */
+.campus-content { font-family:'Share Tech Mono',monospace; font-size:11px; }
+.campus-section-title {
+  color:#00ff88; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+  border-bottom:1px solid #00ff8822; padding-bottom:4px; margin:10px 0 6px;
+}
+.campus-module, .campus-student-row, .campus-project-row {
+  display:flex; align-items:center; gap:8px; margin-bottom:5px;
+}
+.campus-module-name, .campus-stu-name { flex:1; color:#99cc99; font-size:10px; }
+.campus-pbar { flex:2; height:5px; background:#0d1f10; border-radius:3px; overflow:hidden; }
+.campus-pbar-sm { flex:2; height:4px; background:#0d1f10; border-radius:3px; overflow:hidden; }
+.campus-pbar-fill { height:100%; border-radius:3px; transition:width .4s; }
+.campus-pct { width:30px; text-align:right; color:#557755; font-size:10px; }
+.pct-done { color:#00ff88 !important; }
+.campus-proj-name { flex:1; color:#99cc99; font-size:10px; }
+.campus-proj-student { color:#557755; font-size:10px; width:50px; }
+.campus-proj-badge { font-size:10px; }

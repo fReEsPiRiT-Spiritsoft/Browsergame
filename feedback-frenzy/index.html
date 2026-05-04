@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feedback-Frenzy: Björn's Mainframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,34 +21,48 @@
         <div class="hud-label">SYMPATHY SCORE</div>
         <div id="score-display">
           <span id="score-value">0</span>
-          <div id="score-bar-container">
-            <div id="score-bar"></div>
-          </div>
+          <div id="score-bar-container"><div id="score-bar"></div></div>
         </div>
       </div>
       <div id="hud-center">
         <div id="game-title">BJÖRN'S MAINFRAME</div>
-        <div id="level-display">LEVEL <span id="level-value">1</span></div>
+        <div id="level-display">DEVELOPER AKADEMIE</div>
       </div>
       <div id="hud-right">
         <div class="hud-label">ENCOUNTERS</div>
         <div id="encounter-count">0</div>
-        <div class="hud-label" style="margin-top:8px">CONTROLS</div>
-        <div id="controls-hint">WASD / ↑↓←→</div>
+        <div id="bonus-indicator" class="hidden">⚡ +0 BONUS</div>
+        <div class="hud-label" style="margin-top:6px">CONTROLS</div>
+        <div id="controls-hint">WASD / ↑↓←→ &nbsp; [E] Enter</div>
       </div>
     </div>
 
     <!-- Main Canvas -->
-    <canvas id="gameCanvas" width="800" height="560"></canvas>
+    <canvas id="gameCanvas" width="800" height="640"></canvas>
 
     <!-- Particle Canvas (overlay) -->
-    <canvas id="particleCanvas" width="800" height="560"></canvas>
+    <canvas id="particleCanvas" width="800" height="640"></canvas>
 
-    <!-- Encounter / Battle UI -->
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden"></div>
+
+    <!-- ── Building Modal ──────────────────────────────── -->
+    <div id="building-modal" class="hidden">
+      <div id="building-content">
+        <div id="building-header">
+          <div id="building-name">Gebäude</div>
+          <button class="building-close-btn" onclick="closeBuildingModal()">✕ [ESC]</button>
+        </div>
+        <div id="building-desc">Beschreibung</div>
+        <div id="building-gadget"></div>
+      </div>
+    </div>
+
+    <!-- ── Encounter UI ────────────────────────────────── -->
     <div id="encounter-ui" class="hidden">
       <div id="encounter-screen">
         <div id="encounter-header">
-          <span id="encounter-title">FEEDBACK REQUEST</span>
+          <span id="encounter-title">📁 FEEDBACK REQUEST</span>
           <div id="encounter-subtitle">Ein Schüler braucht dein Feedback!</div>
         </div>
         <div id="encounter-arena">
@@ -69,17 +86,15 @@
               <div id="bjoern-glow"></div>
             </div>
             <div id="bjoern-name-display">BJÖRN</div>
-            <div id="bjoern-status">
-              <span class="status-dot"></span> Bereit
-            </div>
+            <div id="bjoern-status"><span class="status-dot"></span> Bereit</div>
           </div>
         </div>
         <div id="feedback-options">
-          <div id="feedback-label">Wähle dein Feedback:</div>
+          <div id="feedback-label">Wähle Björns Reaktion:</div>
           <div id="feedback-buttons">
-            <button class="feedback-btn" id="btn-0" onclick="selectFeedback(0)">...</button>
-            <button class="feedback-btn" id="btn-1" onclick="selectFeedback(1)">...</button>
-            <button class="feedback-btn" id="btn-2" onclick="selectFeedback(2)">...</button>
+            <button class="feedback-btn" id="btn-0">...</button>
+            <button class="feedback-btn" id="btn-1">...</button>
+            <button class="feedback-btn" id="btn-2">...</button>
           </div>
         </div>
         <div id="feedback-result" class="hidden">
@@ -89,31 +104,31 @@
       </div>
     </div>
 
-    <!-- Start Screen -->
+    <!-- ── Start Screen ────────────────────────────────── -->
     <div id="start-screen">
       <div id="start-content">
         <div id="start-logo">
           <div id="logo-line1">FEEDBACK-FRENZY</div>
           <div id="logo-line2">BJÖRN'S MAINFRAME</div>
-          <div id="logo-sub">v1.0 — Developer Academie Edition</div>
+          <div id="logo-sub">v2.0 — Developer Akademie Edition</div>
         </div>
         <div id="start-description">
-          <p>Du bist <strong>Björn</strong>, der mutigste Lehrer im Cyberspace.</p>
-          <p>Navigiere durch das Mainboard und gib deinen Schülern <em>legendäres Feedback</em>.</p>
-          <p>Sammle <strong>Sympathiepunkte</strong> – je cleverer dein Feedback, desto mehr!</p>
+          <p>Du bist <strong>Björn</strong>, der legendärste Lehrer im Cyberspace.</p>
+          <p>Betritt Gebäude, sammel Gadgets und gib deinen Schülern <em>episches Feedback</em>.</p>
+          <p>Sammle <strong>Sympathiepunkte</strong> – je treffender dein Feedback, desto mehr!</p>
         </div>
         <button id="start-button" onclick="startGame()">
           <span>SYSTEM STARTEN</span>
           <div class="btn-glow"></div>
         </button>
         <div id="start-controls">
-          <span>WASD</span> oder <span>Pfeiltasten</span> zum Bewegen
+          <span>WASD</span> / <span>Pfeiltasten</span> bewegen &nbsp;|&nbsp; <span>[E]</span> Gebäude betreten
         </div>
       </div>
       <div id="matrix-bg"></div>
     </div>
 
-    <!-- Game Over / Highscore Screen -->
+    <!-- ── Game Over ───────────────────────────────────── -->
     <div id="gameover-screen" class="hidden">
       <div id="gameover-content">
         <div id="gameover-title">SESSION BEENDET</div>
@@ -122,8 +137,8 @@
         <button id="restart-button" onclick="restartGame()">NEUSTART</button>
       </div>
     </div>
-  </div>
 
+  </div>
   <script src="game.js"></script>
 </body>
 </html>
