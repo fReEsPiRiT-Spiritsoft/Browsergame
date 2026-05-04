@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TILE=32, COLS=25, ROWS=17, CANVAS_W=800, CANVAS_H=640;
+let TILE=32; const COLS=25, ROWS=17; let CANVAS_W=800, CANVAS_H=640;
 
 const AVATAR_IMAGES = {
   bjoern: { img: new Image(), loaded: false }
@@ -175,7 +175,7 @@ const GADGETS = [
   { name: "Kaffee-Thermobecher ☕",            effect: "Björn ist hyper fokussiert! +20 Bonus auf nächstes Feedback.", bonus: 20 },
   { name: "Post-it 'Done > perfect' 📝",       effect: "Erinnerung aktiviert! +15 Bonus auf nächstes Feedback.",       bonus: 15 },
   { name: "Clean-Code-Buch 📖",               effect: "Du erkennst sofort Code-Smells! +25 Bonus.",                    bonus: 25 },
-  { name: "Rubber Duck 🦆",                   effect: "Rubber Duck Debugging aktiviert! +10 Bonus.",                   bonus: 10 },
+  { name: "Kahootquiz 📝",                   effect: "Björn hat ein neues Kahoot quiz gebaut! +10 Bonus.",                   bonus: 10 },
   { name: "Laptop-Aufkleber-Set 💻",          effect: "Schüler sind begeistert! +18 Bonus.",                           bonus: 18 },
   { name: "Extra Kreide 🖊",                   effect: "Björn erklärt nochmal an der Tafel. +12 Bonus.",                bonus: 12 },
 ];
@@ -197,7 +197,7 @@ const BUILDINGS = [
   { id: 'cafe',    name: "☕ Kaffee-Ecke",    col: 2,  row: 2,  w: 4, h: 3, color: "#5c3317", roofColor: "#8b4513", doorCol: 4,  doorRow: 4  },
   { id: 'campus',  name: "📚 Campus - DA",     col: 10, row: 1,  w: 5, h: 3, color: "#1a3355", roofColor: "#234488", doorCol: 12, doorRow: 3  },
   { id: 'lab',     name: "💻 Code-Lab",        col: 18, row: 2,  w: 4, h: 3, color: "#0a2a0a", roofColor: "#1a5c1a", doorCol: 20, doorRow: 4  },
-  { id: 'lounge',  name: "🛋 Schüler-Lounge",  col: 3,  row: 10, w: 4, h: 3, color: "#2a1a3a", roofColor: "#4a2a6a", doorCol: 5,  doorRow: 12 },
+  { id: 'lounge',  name: "� DA-Discord",       col: 3,  row: 10, w: 4, h: 3, color: "#5865F2", roofColor: "#4752c4", doorCol: 5,  doorRow: 12 },
   { id: 'server',  name: "🖥 Server-Raum",     col: 18, row: 11, w: 4, h: 3, color: "#001a1a", roofColor: "#004444", doorCol: 20, doorRow: 13 },
 ];
 let buildingGadgets = {};
@@ -265,7 +265,7 @@ class ParticleSystem {
   burst(wx,wy,count=30,color=null) {
     for (let i=0;i<count;i++) {
       const angle=Math.random()*Math.PI*2, speed=1+Math.random()*4;
-      this.particles.push({ x:wx, y:wy+80, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-2,
+      this.particles.push({ x:wx, y:wy+TILE*2.5, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-2,
         life:1, decay:.015+Math.random()*.02, char:Math.random()>.5?'1':'0',
         size:10+Math.random()*6, hue:color?null:(120+Math.floor(Math.random()*60)), color });
     }
@@ -297,7 +297,23 @@ class Player {
       this.animTimer++; if(this.animTimer%8===0) this.animFrame=(this.animFrame+1)%4;
     }
   }
-  drawOn(ctx) { const px=Math.round(this.x),py=Math.round(this.y); ctx.save(); ctx.shadowBlur=20; ctx.shadowColor='#00ff88'; drawBjoernSprite(ctx,px+TILE/2,py+TILE/2-4,this.dir,this.animFrame); ctx.restore(); }
+  drawOn(ctx) {
+    const px=Math.round(this.x), py=Math.round(this.y);
+    const cx=px+TILE/2, cy=py+TILE/2;
+    ctx.save(); ctx.shadowBlur=20; ctx.shadowColor='#00ff88';
+    drawBjoernSprite(ctx, cx, cy-4, this.dir, this.animFrame);
+    ctx.restore();
+    if (AVATAR_IMAGES.bjoern.loaded) {
+      const img=AVATAR_IMAGES.bjoern.img;
+      const s=TILE/32, r=Math.round(10*s);
+      const hx=cx, hy=cy-4-12*s;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI*2); ctx.clip();
+      const imgSc=Math.max(r*2/img.width, r*2/img.height);
+      ctx.drawImage(img, hx-img.width*imgSc/2, hy-img.height*imgSc/2, img.width*imgSc, img.height*imgSc);
+      ctx.restore();
+    }
+  }
 }
 
 /* ── NPC ──────────────────────────────────────────────────────── */
@@ -325,51 +341,49 @@ class StudentNPC {
 }
 
 /* ── Björn Sprite ─────────────────────────────────────────────── */
-function drawBjoernSprite(ctx,cx,cy,dir,frame) {
-  // ground shadow
-  ctx.globalAlpha=.25; ctx.fillStyle='#00ff88'; ctx.beginPath(); ctx.ellipse(cx,cy+14,10,4,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-  // legs
+function drawBjoernSprite(ctx,cx,cy,dir,frame,sOv) {
+  const s=sOv!==undefined?sOv:TILE/32;
+  ctx.save();
+  ctx.translate(cx,cy); ctx.scale(s,s);
+  ctx.globalAlpha=.25; ctx.fillStyle='#00ff88'; ctx.beginPath(); ctx.ellipse(0,14,10,4,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
   const lo=frame%2===0?3:-3;
-  ctx.fillStyle='#1a1a3a'; ctx.fillRect(cx-6,cy+8,5,8+lo); ctx.fillRect(cx+1,cy+8,5,8-lo);
-  ctx.fillStyle='#111'; ctx.fillRect(cx-7,cy+15+lo,7,3); ctx.fillRect(cx,cy+15-lo,7,3);
-  // jacket body
-  ctx.fillStyle='#1a4480'; ctx.fillRect(cx-9,cy-2,18,12);
+  ctx.fillStyle='#1a1a3a'; ctx.fillRect(-6,8,5,8+lo); ctx.fillRect(1,8,5,8-lo);
+  ctx.fillStyle='#111'; ctx.fillRect(-7,15+lo,7,3); ctx.fillRect(0,15-lo,7,3);
+  ctx.fillStyle='#1a4480'; ctx.fillRect(-9,-2,18,12);
   ctx.fillStyle='#112255';
-  ctx.beginPath(); ctx.moveTo(cx-9,cy-2); ctx.lineTo(cx-2,cy+2); ctx.lineTo(cx-2,cy+10); ctx.lineTo(cx-9,cy+10); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(cx+9,cy-2); ctx.lineTo(cx+2,cy+2); ctx.lineTo(cx+2,cy+10); ctx.lineTo(cx+9,cy+10); ctx.fill();
-  // shirt + tie
-  ctx.fillStyle='#ffffff'; ctx.fillRect(cx-2,cy-2,4,5);
-  ctx.fillStyle='#cc2222'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx-2,cy+3); ctx.lineTo(cx,cy+9); ctx.lineTo(cx+2,cy+3); ctx.closePath(); ctx.fill();
-  // head skin
-  ctx.fillStyle='#f5c8a0'; ctx.beginPath(); ctx.arc(cx,cy-12,10,0,Math.PI*2); ctx.fill();
-  // stubble
-  ctx.fillStyle='#d4a87866'; ctx.fillRect(cx-7,cy-7,14,5);
-  // hair
-  ctx.fillStyle='#3a2010'; ctx.fillRect(cx-10,cy-22,20,12); ctx.fillRect(cx-11,cy-18,3,6); ctx.fillRect(cx+8,cy-18,3,6); ctx.fillRect(cx-2,cy-24,4,4);
-  // ears
-  ctx.fillStyle='#f5c8a0'; ctx.fillRect(cx-12,cy-14,3,5); ctx.fillRect(cx+9,cy-14,3,5);
-  // eyes + glasses
+  ctx.beginPath(); ctx.moveTo(-9,-2); ctx.lineTo(-2,2); ctx.lineTo(-2,10); ctx.lineTo(-9,10); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(9,-2); ctx.lineTo(2,2); ctx.lineTo(2,10); ctx.lineTo(9,10); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.fillRect(-2,-2,4,5);
+  ctx.fillStyle='#cc2222'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-2,3); ctx.lineTo(0,9); ctx.lineTo(2,3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#f5c8a0'; ctx.beginPath(); ctx.arc(0,-12,10,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#d4a87866'; ctx.fillRect(-7,-7,14,5);
+  ctx.fillStyle='#3a2010'; ctx.fillRect(-10,-22,20,12); ctx.fillRect(-11,-18,3,6); ctx.fillRect(8,-18,3,6); ctx.fillRect(-2,-24,4,4);
+  ctx.fillStyle='#f5c8a0'; ctx.fillRect(-12,-14,3,5); ctx.fillRect(9,-14,3,5);
   const eo=dir===3?-2:dir===1?2:0;
-  ctx.fillStyle='#1a1a1a'; ctx.fillRect(cx-5+eo,cy-14,3,3); ctx.fillRect(cx+2+eo,cy-14,3,3);
+  ctx.fillStyle='#1a1a1a'; ctx.fillRect(-5+eo,-14,3,3); ctx.fillRect(2+eo,-14,3,3);
   ctx.strokeStyle='#cccccc'; ctx.lineWidth=1.5; ctx.shadowBlur=4; ctx.shadowColor='#aaaaff';
-  ctx.strokeRect(cx-6+eo,cy-15,5,4); ctx.strokeRect(cx+1+eo,cy-15,5,4);
-  ctx.beginPath(); ctx.moveTo(cx-1+eo,cy-13); ctx.lineTo(cx+1+eo,cy-13); ctx.stroke(); ctx.shadowBlur=0;
-  // smile
-  ctx.strokeStyle='#88442288'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx+eo,cy-8,4,.1,Math.PI-.1); ctx.stroke();
+  ctx.strokeRect(-6+eo,-15,5,4); ctx.strokeRect(1+eo,-15,5,4);
+  ctx.beginPath(); ctx.moveTo(-1+eo,-13); ctx.lineTo(1+eo,-13); ctx.stroke(); ctx.shadowBlur=0;
+  ctx.strokeStyle='#88442288'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(eo,-8,4,.1,Math.PI-.1); ctx.stroke();
+  ctx.restore();
 }
 
 /* ── Student Sprite ───────────────────────────────────────────── */
-function drawStudentSprite(ctx,cx,cy,data) {
-  ctx.globalAlpha=.2; ctx.fillStyle=data.color; ctx.beginPath(); ctx.ellipse(cx,cy+14,9,3,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-  ctx.fillStyle='#222244'; ctx.fillRect(cx-5,cy+8,4,8); ctx.fillRect(cx+1,cy+8,4,8);
-  ctx.fillStyle='#111'; ctx.fillRect(cx-6,cy+15,6,3); ctx.fillRect(cx,cy+15,6,3);
-  ctx.fillStyle=data.shirtColor; ctx.fillRect(cx-8,cy-2,16,12);
-  ctx.fillStyle=data.shirtColor+'88'; ctx.fillRect(cx-3,cy+4,6,5);
-  ctx.fillStyle=data.skinTone; ctx.beginPath(); ctx.arc(cx,cy-11,9,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle=data.hairColor; ctx.fillRect(cx-9,cy-20,18,11); ctx.fillRect(cx-10,cy-16,3,5); ctx.fillRect(cx+7,cy-16,3,5);
-  ctx.fillStyle=data.skinTone; ctx.fillRect(cx-11,cy-13,3,5); ctx.fillRect(cx+8,cy-13,3,5);
-  ctx.fillStyle='#222'; ctx.fillRect(cx-4,cy-13,3,3); ctx.fillRect(cx+1,cy-13,3,3);
-  ctx.font='9px serif'; ctx.fillText(data.emoji,cx+3,cy-6);
+function drawStudentSprite(ctx,cx,cy,data,sOv) {
+  const s=sOv!==undefined?sOv:TILE/32;
+  ctx.save();
+  ctx.translate(cx,cy); ctx.scale(s,s);
+  ctx.globalAlpha=.2; ctx.fillStyle=data.color; ctx.beginPath(); ctx.ellipse(0,14,9,3,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+  ctx.fillStyle='#222244'; ctx.fillRect(-5,8,4,8); ctx.fillRect(1,8,4,8);
+  ctx.fillStyle='#111'; ctx.fillRect(-6,15,6,3); ctx.fillRect(0,15,6,3);
+  ctx.fillStyle=data.shirtColor; ctx.fillRect(-8,-2,16,12);
+  ctx.fillStyle=data.shirtColor+'88'; ctx.fillRect(-3,4,6,5);
+  ctx.fillStyle=data.skinTone; ctx.beginPath(); ctx.arc(0,-11,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=data.hairColor; ctx.fillRect(-9,-20,18,11); ctx.fillRect(-10,-16,3,5); ctx.fillRect(7,-16,3,5);
+  ctx.fillStyle=data.skinTone; ctx.fillRect(-11,-13,3,5); ctx.fillRect(8,-13,3,5);
+  ctx.fillStyle='#222'; ctx.fillRect(-4,-13,3,3); ctx.fillRect(1,-13,3,3);
+  ctx.font='9px serif'; ctx.fillText(data.emoji,3,-6);
+  ctx.restore();
 }
 
 /* ── Encounter Avatars ────────────────────────────────────────── */
@@ -399,7 +413,7 @@ function drawEncounterBjoern(canvas) {
     ctx.drawImage(img, sx, sy, sw, sh);
     ctx.restore();
   } else {
-    ctx.save(); ctx.scale(2.2,2.2); drawBjoernSprite(ctx,w/2/2.2,h/2/2.2+2,2,0); ctx.restore();
+    drawBjoernSprite(ctx, w/2, h/2+4.4, 2, 0, 2.2);
   }
 }
 function drawEncounterStudent(canvas,data) {
@@ -407,7 +421,7 @@ function drawEncounterStudent(canvas,data) {
   ctx.clearRect(0,0,w,h);
   ctx.beginPath(); ctx.arc(w/2,h/2,52,0,Math.PI*2); ctx.fillStyle=data.color+'22'; ctx.fill();
   ctx.strokeStyle=data.color; ctx.lineWidth=2; ctx.shadowBlur=20; ctx.shadowColor=data.color; ctx.stroke(); ctx.shadowBlur=0;
-  ctx.save(); ctx.scale(2.2,2.2); drawStudentSprite(ctx,w/2/2.2,h/2/2.2+2,data); ctx.restore();
+  drawStudentSprite(ctx, w/2, h/2+4.4, data, 2.2);
 }
 
 /* ── Utility ──────────────────────────────────────────────────── */
@@ -418,16 +432,21 @@ function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const 
 /* ── Matrix Rain ──────────────────────────────────────────────── */
 class MatrixRain {
   constructor(el) {
-    this.canvas=document.createElement('canvas'); this.canvas.width=800; this.canvas.height=720;
+    this.canvas=document.createElement('canvas');
     Object.assign(this.canvas.style,{position:'absolute',top:0,left:0,width:'100%',height:'100%'});
     el.appendChild(this.canvas); this.ctx=this.canvas.getContext('2d');
-    this.cols=Math.floor(800/14); this.drops=new Array(this.cols).fill(0).map(()=>Math.random()*-50);
     this.chars='01アイウエオカキクケコ<>{}[]|\\/#@!?%&*';
+    this.resize(window.innerWidth, window.innerHeight);
+  }
+  resize(w,h) {
+    this.canvas.width=w; this.canvas.height=h;
+    this.cols=Math.floor(w/14); this.drops=new Array(this.cols).fill(0).map(()=>Math.random()*-50);
   }
   tick() {
-    const ctx=this.ctx; ctx.fillStyle='rgba(3,13,6,0.07)'; ctx.fillRect(0,0,800,720);
+    const ctx=this.ctx, w=this.canvas.width, h=this.canvas.height;
+    ctx.fillStyle='rgba(3,13,6,0.07)'; ctx.fillRect(0,0,w,h);
     ctx.fillStyle='#00ff44'; ctx.font='13px monospace';
-    this.drops.forEach((y,i)=>{const ch=this.chars[Math.floor(Math.random()*this.chars.length)];ctx.fillText(ch,i*14,y*14);if(y*14>720&&Math.random()>.975)this.drops[i]=0;else this.drops[i]+=.6;});
+    this.drops.forEach((y,i)=>{const ch=this.chars[Math.floor(Math.random()*this.chars.length)];ctx.fillText(ch,i*14,y*14);if(y*14>h&&Math.random()>.975)this.drops[i]=0;else this.drops[i]+=.6;});
   }
 }
 
@@ -442,6 +461,33 @@ let inputCooldown=0;
 const gameCanvas     = document.getElementById('gameCanvas');
 const particleCanvas = document.getElementById('particleCanvas');
 const gCtx           = gameCanvas.getContext('2d');
+
+/* ── Canvas Init / Resize ─────────────────────────────────────── */
+function initCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const HUD_H = 80;
+  const availW = window.innerWidth;
+  const availH = window.innerHeight - HUD_H;
+  TILE = Math.max(Math.min(Math.floor(availW / COLS), Math.floor(availH / ROWS)), 16);
+  CANVAS_W = COLS * TILE;
+  CANVAS_H = ROWS * TILE;
+  const leftOff = Math.floor((availW - CANVAS_W) / 2);
+  [gameCanvas, particleCanvas].forEach(c => {
+    c.width  = CANVAS_W * dpr;
+    c.height = CANVAS_H * dpr;
+    c.style.width  = CANVAS_W + 'px';
+    c.style.height = CANVAS_H + 'px';
+    c.style.left   = leftOff + 'px';
+  });
+  gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (particles) particles.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function onResize() {
+  initCanvas();
+  if (matrixRain) matrixRain.resize(window.innerWidth, window.innerHeight);
+  if (player) { player.x=player.col*TILE; player.y=player.row*TILE; player.tx=player.x; player.ty=player.y; }
+  students.forEach(s=>{ s.x=s.col*TILE; s.y=s.row*TILE; });
+}
 
 /* ── Keyboard ─────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
@@ -508,11 +554,9 @@ function enterBuilding(b) {
   document.getElementById('building-desc').textContent=descs[b.id]||'Ein mysteriöser Raum.';
   const el=document.getElementById('building-gadget');
   if (b.id==='campus') {
-    if (Math.random()<0.4) {
-      showCampusError(el, b);
-    } else {
-      showCampusContent(el, b);
-    }
+    if (Math.random()<0.4) { showCampusError(el, b); } else { showCampusContent(el, b); }
+  } else if (b.id==='lounge') {
+    showDiscordContent(el);
   } else {
     const gadget=buildingGadgets[b.id];
     if (gadget) {
@@ -625,6 +669,160 @@ function showCampusContent(el, b) {
   </div>`;
 }
 
+/* ── DA-Discord Building ──────────────────────────────────────── */
+function showDiscordContent(el) {
+  const VOICE_CHANNELS = ['dev-meeting-1', 'dev-meeting-2', 'dev-meeting-3'];
+  const TEXT_CHANNELS  = [
+    { name: 'tickets',    emoji: '💡' },
+    { name: 'allgemein',  emoji: '🌍' },
+    { name: 'talk',       emoji: '🗣' },
+  ];
+
+  // randomly distribute students
+  const slots = [...VOICE_CHANNELS, null, null]; // null = offline
+  const dist  = { 'dev-meeting-1': [], 'dev-meeting-2': [], 'dev-meeting-3': [] };
+  shuffleArray([...STUDENTS]).forEach(s => {
+    const ch = slots[Math.floor(Math.random() * slots.length)];
+    if (ch) dist[ch].push(s);
+  });
+
+  const textHtml = TEXT_CHANNELS.map(c => `
+    <div class="dc-ch dc-text">
+      <span class="dc-hash">#</span>
+      <span class="dc-ch-emoji">${c.emoji}</span>
+      <span class="dc-ch-name">${c.name}</span>
+    </div>`).join('');
+
+  const voiceHtml = VOICE_CHANNELS.map((ch,i) => {
+    const members = dist[ch];
+    const isActive = members.length > 0;
+    const memberHtml = members.map(m => `
+      <div class="dc-voice-member">
+        <div class="dc-member-av" style="background:${m.color}">${m.emoji}</div>
+        <span class="dc-member-name">${m.name}</span>
+        <span class="dc-member-mic">🎤</span>
+      </div>`).join('');
+    return `
+    <div class="dc-ch dc-voice ${isActive?'dc-voice-active':''}">
+      <svg class="dc-voice-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12 8a4 4 0 0 1-4 4 4 4 0 0 1-4-4V4a4 4 0 0 1 4-4 4 4 0 0 1 4 4v4zm-1.5 0V4A2.5 2.5 0 0 0 8 1.5 2.5 2.5 0 0 0 5.5 4v4A2.5 2.5 0 0 0 8 10.5 2.5 2.5 0 0 0 10.5 8zM7 14.5v-1.52A6 6 0 0 1 2 7H3.5a4.5 4.5 0 0 0 9 0H14a6 6 0 0 1-5 5.98v1.52h-2z"/></svg>
+      <span class="dc-ch-name">${ch}</span>
+      ${isActive?`<span class="dc-vc-count">${members.length}</span>`:''}
+    </div>
+    ${memberHtml}`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="dc-layout">
+      <div class="dc-sidebar">
+        <div class="dc-server-header">Intensivkurs-DA
+          <span class="dc-chevron">&#8964;</span>
+        </div>
+        <div class="dc-section-label">TEXT-KANÄLE</div>
+        ${textHtml}
+        <div class="dc-section-label">SPRACHKANÄLE</div>
+        ${voiceHtml}
+      </div>
+      <div class="dc-main">
+        <div class="dc-main-header">
+          <svg class="dc-voice-icon" viewBox="0 0 16 16" fill="currentColor" width="18" height="18"><path d="M12 8a4 4 0 0 1-4 4 4 4 0 0 1-4-4V4a4 4 0 0 1 4-4 4 4 0 0 1 4 4v4zm-1.5 0V4A2.5 2.5 0 0 0 8 1.5 2.5 2.5 0 0 0 5.5 4v4A2.5 2.5 0 0 0 8 10.5 2.5 2.5 0 0 0 10.5 8zM7 14.5v-1.52A6 6 0 0 1 2 7H3.5a4.5 4.5 0 0 0 9 0H14a6 6 0 0 1-5 5.98v1.52h-2z"/></svg>
+          <span>dev-meetings</span>
+        </div>
+        <div class="dc-main-body">
+          ${VOICE_CHANNELS.map(ch => `
+            <div class="dc-vc-room ${dist[ch].length?'dc-vc-room-active':''}">
+              <div class="dc-vc-room-title">🔊 ${ch}
+                ${dist[ch].length===0?'<span class="dc-empty">(leer)</span>':''}
+              </div>
+              <div class="dc-vc-room-members">
+                ${dist[ch].map(m=>`
+                  <div class="dc-big-member">
+                    <div class="dc-big-av" style="background:${m.color};box-shadow:0 0 10px ${m.color}88">${m.emoji}</div>
+                    <div class="dc-big-name">${m.name}</div>
+                    <div class="dc-big-status">🎤 spricht gerade</div>
+                  </div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── DA-Discord Building ─────────────────────────────────────── */
+function showDiscordContent(el) {
+  const VOICE_CHANNELS = ['dev-meeting-1', 'dev-meeting-2', 'dev-meeting-3'];
+  const TEXT_CHANNELS  = [
+    { name: 'tickets',   emoji: '💡' },
+    { name: 'allgemein', emoji: '🌍' },
+    { name: 'talk',      emoji: '🗣️' },
+  ];
+
+  // randomly distribute students — null = offline
+  const slots = [...VOICE_CHANNELS, null, null];
+  const dist  = { 'dev-meeting-1': [], 'dev-meeting-2': [], 'dev-meeting-3': [] };
+  shuffleArray([...STUDENTS]).forEach(s => {
+    const ch = slots[Math.floor(Math.random() * slots.length)];
+    if (ch) dist[ch].push(s);
+  });
+
+  const textHtml = TEXT_CHANNELS.map(c => `
+    <div class="dc-ch dc-text">
+      <span class="dc-hash">#</span>
+      <span class="dc-ch-name">${c.emoji} ${c.name}</span>
+    </div>`).join('');
+
+  const voiceHtml = VOICE_CHANNELS.map(ch => {
+    const members = dist[ch];
+    const memberHtml = members.map(m => `
+      <div class="dc-voice-member">
+        <div class="dc-member-av" style="background:${m.color}">${m.emoji}</div>
+        <span class="dc-member-name">${m.name}</span>
+        <span class="dc-member-mic">🎤</span>
+      </div>`).join('');
+    return `
+    <div class="dc-ch dc-voice ${members.length ? 'dc-voice-active' : ''}">
+      <span class="dc-voice-icon">🔊</span>
+      <span class="dc-ch-name">${ch}</span>
+      ${members.length ? `<span class="dc-vc-count">${members.length}</span>` : ''}
+    </div>
+    ${memberHtml}`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="dc-layout">
+      <div class="dc-sidebar">
+        <div class="dc-server-header">Intensivkurs-DA &#8964;</div>
+        <div class="dc-section-label">TEXT-KANÄLE</div>
+        ${textHtml}
+        <div class="dc-section-label">SPRACHKANÄLE</div>
+        ${voiceHtml}
+        <div class="dc-user-bar">
+          <div class="dc-user-av">🧑‍💻</div>
+          <span class="dc-user-name">björn_dev</span>
+          <span class="dc-user-status">🟢</span>
+        </div>
+      </div>
+      <div class="dc-main">
+        <div class="dc-main-header">🔊 dev-meetings</div>
+        <div class="dc-main-body">
+          ${VOICE_CHANNELS.map(ch => `
+            <div class="dc-vc-room ${dist[ch].length ? 'dc-vc-room-active' : ''}">
+              <div class="dc-vc-room-title">🔊 ${ch}
+                ${dist[ch].length === 0 ? '<span class="dc-empty">— leer</span>' : ''}
+              </div>
+              <div class="dc-vc-room-members">
+                ${dist[ch].map(m => `
+                  <div class="dc-big-member">
+                    <div class="dc-big-av" style="background:${m.color};box-shadow:0 0 8px ${m.color}99">${m.emoji}</div>
+                    <div class="dc-big-name">${m.name}</div>
+                    <div class="dc-big-status">🎤 verbunden</div>
+                  </div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
 function showToast(msg,color='#00ff88') {
   const t=document.getElementById('toast');
   t.textContent=msg; t.style.borderColor=color; t.style.color=color; t.style.textShadow=`0 0 10px ${color}`;
@@ -733,6 +931,8 @@ function showGameOver(){
 
 /* ── Start ────────────────────────────────────────────────────── */
 window.addEventListener('DOMContentLoaded',()=>{
+  initCanvas();
+  window.addEventListener('resize', onResize);
   const matrixEl=document.getElementById('matrix-bg');
   matrixRain=new MatrixRain(matrixEl);
   function rainLoop(){if(gameState==='START'){matrixRain.tick();matrixRain._id=requestAnimationFrame(rainLoop);}}
