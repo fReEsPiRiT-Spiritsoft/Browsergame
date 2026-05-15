@@ -8,16 +8,27 @@
 let TILE=32; const COLS=25, ROWS=17; let CANVAS_W=800, CANVAS_H=640;
 
 const AVATAR_IMAGES = {
-  bjoern: { img: new Image(), loaded: false }
+  bjoern:  { img: new Image(), loaded: false },
+  daniel:  { img: new Image(), loaded: false },
+  patrick: { img: new Image(), loaded: false },
+  kevin:   { img: new Image(), loaded: false },
 };
-AVATAR_IMAGES.bjoern.img.onload = () => { AVATAR_IMAGES.bjoern.loaded = true; };
-AVATAR_IMAGES.bjoern.img.onerror = () => { AVATAR_IMAGES.bjoern.loaded = false; };
-AVATAR_IMAGES.bjoern.img.src = encodeURI('assets/avatar/björn-avatar.png');
+
+function initAvatarImage(key, fileName) {
+  AVATAR_IMAGES[key].img.onload = () => { AVATAR_IMAGES[key].loaded = true; };
+  AVATAR_IMAGES[key].img.onerror = () => { AVATAR_IMAGES[key].loaded = false; };
+  AVATAR_IMAGES[key].img.src = encodeURI(`assets/avatar/${fileName}`);
+}
+
+initAvatarImage('bjoern', 'björn-avatar.png');
+initAvatarImage('daniel', 'daniel-avatar.png');
+initAvatarImage('patrick', 'patrick-avatar.png');
+initAvatarImage('kevin', 'kevin-avatar.png');
 
 /* ── Echte DA-Projekte (mit projekt-spezifischen Björn-Sprüchen) ── */
 const DA_PROJECTS = [
   {
-    name: "Sakura Ramen", student: "Kevin",
+    name: "Sakura Ramen", student: "Daniel",
     description: "Preisliste für chinesischen Nudelladen – Frontend",
     quality: "ok",
     bjoernFeedback: [
@@ -32,7 +43,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Bookstore", student: "Lena",
+    name: "Bookstore", student: "Adam",
     description: "Online-Buchhandlung – Frontend",
     quality: "ok",
     bjoernFeedback: [
@@ -47,7 +58,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Bestellapp", student: "Max",
+    name: "Bestellapp", student: "Patrick",
     description: "Lieferando-Klon – Frontend",
     quality: "chaos",
     bjoernFeedback: [
@@ -62,7 +73,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Pokedex", student: "Tim",
+    name: "Pokedex", student: "Yunus",
     description: "Pokémon-Enzyklopädie mit PokéAPI – Frontend",
     quality: "clean",
     bjoernFeedback: [
@@ -77,7 +88,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "El Polo Loco", student: "Pascal",
+    name: "El Polo Loco", student: "Sascha",
     description: "Jump-'n'-Run Browsergame – Vanilla JS",
     quality: "clean",
     bjoernFeedback: [
@@ -92,7 +103,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Portfolio", student: "Julia",
+    name: "Portfolio", student: "Kaja",
     description: "Persönliche Portfolio-Seite – Frontend",
     quality: "ok",
     bjoernFeedback: [
@@ -107,7 +118,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "JOIN", student: "Emma",
+    name: "JOIN", student: "Mo",
     description: "Kanban-Board – Fullstack",
     quality: "clean",
     bjoernFeedback: [
@@ -122,7 +133,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Coderr", student: "Sarah",
+    name: "Coderr", student: "Manu",
     description: "Freelancer-Plattform – Backend",
     quality: "clean",
     bjoernFeedback: [
@@ -137,7 +148,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Quizly", student: "Max",
+    name: "Quizly", student: "Patrick",
     description: "KI-generierte Quizzes aus YouTube-Videos",
     quality: "clean",
     bjoernFeedback: [
@@ -152,7 +163,7 @@ const DA_PROJECTS = [
     ]
   },
   {
-    name: "Videoflix", student: "Lena",
+    name: "Videoflix", student: "Adam",
     description: "Netflix-Klon – Backend",
     quality: "chaos",
     bjoernFeedback: [
@@ -333,8 +344,11 @@ class StudentNPC {
   }
   drawOn(ctx) {
     const px=Math.round(this.x), py=Math.round(this.y)+Math.sin(this.bobPhase)*2;
+    const cx = px + TILE / 2;
+    const cy = py + TILE / 2 - 4;
     ctx.save(); ctx.shadowBlur=this.exclamation>0?20:10; ctx.shadowColor=this.data.color;
-    drawStudentSprite(ctx,px+TILE/2,py+TILE/2-4,this.data);
+    drawStudentSprite(ctx,cx,cy,this.data);
+    drawStudentAvatarHead(ctx,cx,cy,this.data,TILE/32);
     if(this.exclamation>.1){ctx.globalAlpha=Math.min(1,this.exclamation);ctx.font='bold 16px monospace';ctx.fillStyle='#ffdd00';ctx.shadowBlur=10;ctx.shadowColor='#ffdd00';ctx.fillText('!',px+TILE/2-4,py-14);}
     ctx.restore();
   }
@@ -386,6 +400,21 @@ function drawStudentSprite(ctx,cx,cy,data,sOv) {
   ctx.restore();
 }
 
+function drawStudentAvatarHead(ctx,cx,cy,data,s) {
+  const key=data.name.toLowerCase();
+  const avatar=AVATAR_IMAGES[key];
+  if(!avatar||!avatar.loaded) return;
+
+  const img=avatar.img;
+  const r=Math.round(9*s);
+  const hx=cx, hy=cy-11*s;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(hx,hy,r,0,Math.PI*2); ctx.clip();
+  const imgSc=Math.max(r*2/img.width,r*2/img.height);
+  ctx.drawImage(img,hx-img.width*imgSc/2,hy-img.height*imgSc/2,img.width*imgSc,img.height*imgSc);
+  ctx.restore();
+}
+
 /* ── Encounter Avatars ────────────────────────────────────────── */
 function drawEncounterBjoern(canvas) {
   const ctx=canvas.getContext('2d'), w=canvas.width, h=canvas.height;
@@ -413,7 +442,17 @@ function drawEncounterBjoern(canvas) {
     ctx.drawImage(img, sx, sy, sw, sh);
     ctx.restore();
   } else {
-    drawBjoernSprite(ctx, w/2, h/2+4.4, 2, 0, 2.2);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(w/2, h/2, 49, 0, Math.PI*2);
+    ctx.clip();
+    ctx.fillStyle = '#06241a';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#00ff88cc';
+    ctx.font = "bold 13px 'Share Tech Mono', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillText('BJORN', w/2, h/2 + 4);
+    ctx.restore();
   }
 }
 function drawEncounterStudent(canvas,data) {
@@ -421,13 +460,243 @@ function drawEncounterStudent(canvas,data) {
   ctx.clearRect(0,0,w,h);
   ctx.beginPath(); ctx.arc(w/2,h/2,52,0,Math.PI*2); ctx.fillStyle=data.color+'22'; ctx.fill();
   ctx.strokeStyle=data.color; ctx.lineWidth=2; ctx.shadowBlur=20; ctx.shadowColor=data.color; ctx.stroke(); ctx.shadowBlur=0;
-  drawStudentSprite(ctx, w/2, h/2+4.4, data, 2.2);
+  const key=data.name.toLowerCase();
+  const avatar=AVATAR_IMAGES[key];
+  if(avatar&&avatar.loaded){
+    const img=avatar.img;
+    const size=98;
+    const dx=(w-size)/2;
+    const dy=(h-size)/2;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(w/2,h/2,size/2,0,Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+
+    const scale=Math.max(size/img.width,size/img.height);
+    const sw=img.width*scale;
+    const sh=img.height*scale;
+    const sx=dx-(sw-size)/2;
+    const sy=dy-(sh-size)/2;
+    ctx.drawImage(img,sx,sy,sw,sh);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(w/2,h/2,49,0,Math.PI*2);
+    ctx.clip();
+    ctx.fillStyle='#06241a';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle=data.color;
+    ctx.font="bold 13px 'Share Tech Mono', monospace";
+    ctx.textAlign='center';
+    ctx.fillText(data.name.toUpperCase(),w/2,h/2+4);
+    ctx.restore();
+  }
 }
 
 /* ── Utility ──────────────────────────────────────────────────── */
 function lerp(a,b,t){return a+(b-a)*t;}
 function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ═══════════════════════════════════════════════════════════════
+   KEVIN — DER ENDGEGNER 🍌
+   Irgendwo auf der Map liegt eine Banane.
+   Tritt Björn drauf → Kevin erwacht und jagt die Schüler.
+   ═══════════════════════════════════════════════════════════════ */
+class Kevin {
+  constructor(col, row) {
+    this.col=col; this.row=row;
+    this.x=col*TILE; this.y=row*TILE;
+    this.tx=this.x; this.ty=this.y;
+    this.moving=false; this.moveTimer=0; this.MOVE_DUR=16;
+    this.stepCooldown=0; this.STEP_EVERY=30;
+    this.bobPhase=0;
+    this.bananas=[];
+    this.warnText=''; this.warnTimer=0;
+  }
+  update(map, students) {
+    // Smooth movement interpolation
+    if (this.moving) {
+      this.moveTimer++;
+      const t=this.moveTimer/this.MOVE_DUR;
+      this.x=lerp(this.x,this.tx,Math.min(t*2,1));
+      this.y=lerp(this.y,this.ty,Math.min(t*2,1));
+      if(this.moveTimer>=this.MOVE_DUR){this.x=this.tx;this.y=this.ty;this.moving=false;}
+    }
+    this.bobPhase+=0.09;
+    if(!this.moving){
+      this.stepCooldown--;
+      if(this.stepCooldown<=0){
+        this.stepCooldown=this.STEP_EVERY;
+        this._stepTowardStudent(map,students);
+      }
+    }
+    // Eat students in melee range
+    for(const s of students){
+      if(s.eaten||s.interacted) continue;
+      if(Math.abs(s.col-this.col)<=1&&Math.abs(s.row-this.row)<=1) this._eatStudent(s);
+    }
+    // Physics for flying bananas
+    this.bananas=this.bananas.filter(b=>b.life>0);
+    this.bananas.forEach(b=>{b.x+=b.vx;b.y+=b.vy;b.vy+=0.18;b.life-=0.018;b.rot+=0.28;});
+    if(this.warnTimer>0) this.warnTimer--;
+  }
+  _bfsStep(map, tc, tr) {
+    // Echter BFS – findet immer den optimalen nächsten Schritt
+    const start=`${this.col},${this.row}`;
+    if(this.col===tc&&this.row===tr) return null;
+    const queue=[[this.col,this.row,null]];
+    const visited=new Set([start]);
+    while(queue.length){
+      const [c,r,first]=queue.shift();
+      for(const [dc,dr] of [[0,-1],[0,1],[-1,0],[1,0]]){
+        const nc=c+dc,nr=r+dr,key=`${nc},${nr}`;
+        if(isSolid(map,nc,nr)||visited.has(key)) continue;
+        const step=first||[dc,dr];
+        if(nc===tc&&nr===tr) return step;
+        visited.add(key);
+        queue.push([nc,nr,step]);
+      }
+    }
+    return null;
+  }
+  _stepTowardStudent(map, students) {
+    const targets=students.filter(s=>!s.eaten&&!s.interacted);
+    if(targets.length===0) return;
+    let nearest=null, bestDist=Infinity;
+    for(const s of targets){
+      const d=Math.abs(s.col-this.col)+Math.abs(s.row-this.row);
+      if(d<bestDist){bestDist=d;nearest=s;}
+    }
+    if(!nearest) return;
+    const step=this._bfsStep(map,nearest.col,nearest.row);
+    if(!step) return;
+    const [dc,dr]=step;
+    const nc=this.col+dc,nr=this.row+dr;
+    this.col=nc;this.row=nr;this.tx=nc*TILE;this.ty=nr*TILE;
+    this.moving=true;this.moveTimer=0;
+    if(Math.random()<0.3) this._throwBanana();
+  }
+  _throwBanana() {
+    const angle=Math.random()*Math.PI*2;
+    const speed=2.5+Math.random()*3;
+    this.bananas.push({x:this.x+TILE,y:this.y+TILE*0.4,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-4,life:1,rot:0});
+  }
+  _eatStudent(student) {
+    student.eaten=true; student.interacted=true;
+    particles.burst(student.x+TILE/2,student.y+TILE/2,35,'#ffdd00');
+    const quips=['🍌 NOM NOM NOM!','🍌 ERWISCHT!','🍌 Lecker Schüler!','🍌 Zu langsam!'];
+    showToast(`${pickRandom(quips)} Kevin hat ${student.data.name} geschnappt! 😱`,'#ff4400');
+    this.warnText='NOM NOM! 🍌'; this.warnTimer=90;
+    if(gameState==='WORLD'&&students.filter(s=>!s.interacted).length===0) setTimeout(showGameOver,800);
+  }
+  drawOn(ctx) {
+    const size=TILE*2.4;
+    const px=Math.round(this.x), py=Math.round(this.y);
+    const cx=px+size/2, cy=py+size/2+Math.sin(this.bobPhase)*3;
+    // Ground shadow
+    ctx.save();
+    ctx.globalAlpha=0.35;ctx.fillStyle='#ff3300';
+    ctx.beginPath();ctx.ellipse(cx,py+size-4,size*0.38,6,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    // Pulsing danger ring
+    const pulse=0.6+0.4*Math.abs(Math.sin(this.bobPhase*0.5));
+    ctx.save();
+    ctx.shadowBlur=30*pulse;ctx.shadowColor='#ff4400';
+    ctx.strokeStyle=`rgba(255,80,0,${pulse*0.7})`;ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(cx,cy-6,size/2+10,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+    // Kevin portrait (circular, large)
+    const kevinAv=AVATAR_IMAGES.kevin;
+    if(kevinAv&&kevinAv.loaded){
+      ctx.save();
+      ctx.beginPath();ctx.arc(cx,cy-6,size/2,0,Math.PI*2);ctx.clip();
+      const img=kevinAv.img;
+      const sc=Math.max(size/img.width,size/img.height);
+      ctx.drawImage(img,cx-img.width*sc/2,cy-6-img.height*sc/2,img.width*sc,img.height*sc);
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle='#ff4400';ctx.lineWidth=3;ctx.shadowBlur=14;ctx.shadowColor='#ff4400';
+      ctx.beginPath();ctx.arc(cx,cy-6,size/2,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.beginPath();ctx.arc(cx,cy-6,size/2,0,Math.PI*2);
+      ctx.fillStyle='#2a0000';ctx.fill();
+      ctx.font=`${Math.round(size*0.5)}px serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('👹',cx,cy-6);
+      ctx.restore();
+    }
+    // Name label
+    ctx.save();
+    ctx.fillStyle='#ff4400';ctx.font="bold 11px 'Share Tech Mono'";
+    ctx.textAlign='center';ctx.shadowBlur=10;ctx.shadowColor='#ff4400';
+    ctx.fillText('⚠ KEVIN ⚠',cx,py-10);
+    ctx.restore();
+    // Speech bubble when eating
+    if(this.warnTimer>0){
+      ctx.save();
+      ctx.globalAlpha=Math.min(1,this.warnTimer/30);
+      ctx.fillStyle='#ffdd00';ctx.font="bold 13px 'Share Tech Mono'";
+      ctx.textAlign='center';ctx.shadowBlur=12;ctx.shadowColor='#ffaa00';
+      ctx.fillText(this.warnText,cx,py-26);
+      ctx.restore();
+    }
+    // Flying bananas
+    this.bananas.forEach(b=>{
+      ctx.save();
+      ctx.globalAlpha=b.life;
+      ctx.translate(Math.round(b.x),Math.round(b.y));
+      ctx.rotate(b.rot);
+      ctx.font=`${Math.round(TILE*0.9)}px serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('🍌',0,0);
+      ctx.restore();
+    });
+  }
+}
+
+let kevin = null;
+let bananaTile = null; // { col, row } — Pickup-Item auf der Map
+let bananaSpawnTimer = 0; // ms seit letztem Banana-Spawn
+
+function spawnBananaTile(usedTiles) {
+  bananaTile = null;
+  for(let a=0;a<600;a++){
+    const c=2+Math.floor(Math.random()*(COLS-4));
+    const r=2+Math.floor(Math.random()*(ROWS-4));
+    const key=`${c},${r}`;
+    if(isSolid(map,c,r)||map[r][c]===6||usedTiles.has(key)) continue;
+    if(Math.abs(c-12)+Math.abs(r-8)<5) continue; // nicht direkt beim Spawn
+    bananaTile={col:c,row:r};
+    return;
+  }
+}
+
+function triggerKevin() {
+  // Kevin erscheint an der walkbaren Ecke am weitesten vom Spieler
+  const corners=[[1,1],[1,ROWS-2],[COLS-2,1],[COLS-2,ROWS-2]];
+  let best=corners[0],bestDist=0;
+  for(const [c,r] of corners){
+    const d=Math.abs(c-player.col)+Math.abs(r-player.row);
+    if(d>bestDist){bestDist=d;best=[c,r];}
+  }
+  // Sichere walkbare Startposition finden (Ecke kann durch Building blockiert sein)
+  let [kc,kr]=best;
+  if(isSolid(map,kc,kr)){
+    let found=false;
+    outer: for(let dr=-3;dr<=3&&!found;dr++) for(let dc=-3;dc<=3&&!found;dc++){
+      if(!isSolid(map,kc+dc,kr+dr)){kc+=dc;kr+=dr;found=true;break outer;}
+    }
+  }
+  kevin=new Kevin(kc,kr);
+  bananaTile=null;
+  showToast('🍌🍌 KEVIN IST LOS! Rette deine Schüler vor seinen Bananen!! 🍌🍌','#ff4400');
+  particles.burst(player.x+TILE/2,player.y+TILE/2,60,'#ffaa00');
+}
 
 /* ── Matrix Rain ──────────────────────────────────────────────── */
 class MatrixRain {
@@ -453,10 +722,18 @@ class MatrixRain {
 /* ═══════════════════════════════════════════════════════════════
    GAME STATE
    ═══════════════════════════════════════════════════════════════ */
+
 let gameState='START', map=[], player=null, students=[], particles=null, matrixRain=null, animId=null;
 let score=0, encounterCount=0, activeBonus=0, currentStudent=null, feedbackChoices=[], currentProject=null;
 const keys={up:false,down:false,left:false,right:false};
 let inputCooldown=0;
+
+// ── KI-Discord-Overhear-Flag ──
+let overheardAIinDiscord = false;
+let overheardAIStudentNames = [];
+const DISCORD_AI_KEYWORDS = [
+  'KI', 'Copilot', 'Prompt', 'AI', 'KI gebaut', 'Prompt-Fehler', 'Copilot gefragt', 'Prompt verbessert', 'KI-Prompts'
+];
 
 const gameCanvas     = document.getElementById('gameCanvas');
 const particleCanvas = document.getElementById('particleCanvas');
@@ -524,13 +801,17 @@ function startGame() {
   students=[]; const usedTiles=new Set(); usedTiles.add(`${player.col},${player.row}`);
   BUILDINGS.forEach(b => { for(let dr=0;dr<b.h;dr++) for(let dc=0;dc<b.w;dc++) usedTiles.add(`${b.col+dc},${b.row+dr}`); });
   const pool=shuffleArray([...STUDENTS]); let placed=0, attempts=0;
-  while(placed<6 && attempts<1000) {
+  while(placed<pool.length && attempts<2000) {
     attempts++; const c=1+Math.floor(Math.random()*(COLS-2)), r=1+Math.floor(Math.random()*(ROWS-2));
     const key=`${c},${r}`;
     if(isSolid(map,c,r)||map[r][c]===6||usedTiles.has(key)) continue;
     if(Math.abs(c-player.col)+Math.abs(r-player.row)<4) continue;
     usedTiles.add(key); students.push(new StudentNPC(c,r,pool[placed%pool.length])); placed++;
   }
+  kevin=null;
+  overheardAIinDiscord=false; overheardAIStudentNames=[];
+  bananaSpawnTimer=Date.now();
+  spawnBananaTile(usedTiles);
   gameState='WORLD'; if(!animId) gameLoop();
 }
 function restartGame() { document.getElementById('gameover-screen').classList.add('hidden'); startGame(); }
@@ -576,6 +857,7 @@ function collectGadget(buildingId) {
 function closeBuildingModal() {
   document.getElementById('building-modal').classList.add('hidden');
   gameState='WORLD';
+  discordState = null;
   const m=document.getElementById('fake-ctx-menu'); if(m) m.remove();
 }
 
@@ -625,7 +907,7 @@ function showCampusContent(el, b) {
     {name:"HTML & CSS Grundlagen",     pct:100},
     {name:"JavaScript Essentials",     pct:100},
     {name:"Git & GitHub Workflows",    pct:95 },
-    {name:"React – Components & State",pct:81 },
+    {name:"Angular – Components & State", pct:81 },
     {name:"Node.js & Express",         pct:70 },
     {name:"Datenbanken (SQL + NoSQL)", pct:57 },
     {name:"REST-APIs & Auth (JWT)",    pct:43 },
@@ -669,108 +951,153 @@ function showCampusContent(el, b) {
   </div>`;
 }
 
-/* ── DA-Discord Building ──────────────────────────────────────── */
-function showDiscordContent(el) {
-  const VOICE_CHANNELS = ['dev-meeting-1', 'dev-meeting-2', 'dev-meeting-3'];
-  const TEXT_CHANNELS  = [
-    { name: 'tickets',    emoji: '💡' },
-    { name: 'allgemein',  emoji: '🌍' },
-    { name: 'talk',       emoji: '🗣' },
-  ];
+/* ── DA-Discord Building ─────────────────────────────────────── */
+const DISCORD_VOICE_CHANNELS = ['dev-meeting-1', 'dev-meeting-2', 'dev-meeting-3'];
+const DISCORD_TEXT_CHANNELS = [
+  { name: 'tickets', emoji: '💡' },
+  { name: 'allgemein', emoji: '🌍' },
+  { name: 'talk', emoji: '🗣️' },
+];
+const DISCORD_OVERHEAR_POOL = [
+  { msg: '„Wir haben 80% mit KI gebaut und 20% damit verbracht, Prompt-Fehler zu debuggen.“', min: 5, max: 12 },
+  { msg: '„Ich hab Copilot gefragt, warum mein Code nicht geht. Antwort: Weil ich ihn nie ausgeführt habe.“', min: 6, max: 14 },
+  { msg: '„Unser Daily war nur: Wer hat schon wieder node_modules in Git gepusht?“', min: 4, max: 10 },
+  { msg: '„Wir haben den Bug mit einem Semikolon gefixt. Acht Stunden später.“', min: 5, max: 11 },
+  { msg: '„Frontend sagt: Backend kaputt. Backend sagt: Frontend cached falsch.“', min: 7, max: 15 },
+  { msg: '„Ich hab den Prompt verbessert und plötzlich war der ganze Sprint-Plan da.“', min: 6, max: 13 },
+  { msg: '„Heute 14 KI-Prompts, davon 3 genial, 8 okay und 3 kompletter Quatsch.“', min: 5, max: 12 },
+  { msg: '„Wir refactoren erst, wenn es brennt. Also: Es brennt.“', min: 8, max: 16 },
+  { msg: '„Copilot hat mir die Hälfte vom Code geschrieben, aber ich musste alles nochmal anpassen.“', min: 5, max: 13 },
+  { msg: '„Stable Diffusion für die Grafiken, ChatGPT für die Texte – läuft bei uns!“', min: 7, max: 15 },
+  { msg: '„Ohne KI hätten wir das niemals in der Zeit geschafft.“', min: 6, max: 14 },
+  { msg: '„Prompt-Engineering ist jetzt mein Hauptjob.“', min: 5, max: 12 },
+  { msg: '„Die KI hat einen Button gebaut, aber vergessen, ihn zu verlinken.“', min: 4, max: 10 },
+  { msg: '„Ich hab ChatGPT gefragt, wie man ChatGPT benutzt.“', min: 5, max: 11 },
+  { msg: '„Wir haben die KI gefragt, wie man den Bug fixt – sie hat uns einen neuen gebaut.“', min: 6, max: 13 },
+  { msg: '„Copilot hat einen Merge-Conflict produziert, den nicht mal Copilot versteht.“', min: 7, max: 15 },
+  { msg: '„KI sagt: Funktioniert bei mir. Bei mir nicht.“', min: 5, max: 12 },
+  { msg: '„Prompt: Schreibe sauberen Code. Ergebnis: Naja…“', min: 4, max: 10 },
+  { msg: '„Wir haben die KI gefragt, wie man schneller wird – sie hat geantwortet: Mehr Kaffee.“', min: 5, max: 12 },
+];
+let discordState = null;
 
-  // randomly distribute students
-  const slots = [...VOICE_CHANNELS, null, null]; // null = offline
-  const dist  = { 'dev-meeting-1': [], 'dev-meeting-2': [], 'dev-meeting-3': [] };
+function makeDiscordState() {
+  const slots = [...DISCORD_VOICE_CHANNELS, null, null]; // null = offline
+  const dist = { 'dev-meeting-1': [], 'dev-meeting-2': [], 'dev-meeting-3': [] };
+  let lastPickedConversationIdx = -1;
   shuffleArray([...STUDENTS]).forEach(s => {
     const ch = slots[Math.floor(Math.random() * slots.length)];
     if (ch) dist[ch].push(s);
   });
 
-  const textHtml = TEXT_CHANNELS.map(c => `
-    <div class="dc-ch dc-text">
-      <span class="dc-hash">#</span>
-      <span class="dc-ch-emoji">${c.emoji}</span>
-      <span class="dc-ch-name">${c.name}</span>
-    </div>`).join('');
+  const roomResults = {};
+  DISCORD_VOICE_CHANNELS.forEach(roomName => {
+    const members = dist[roomName] || [];
+    if (members.length === 0) {
+      roomResults[roomName] = {
+        hasMembers: false,
+        success: false,
+        points: 0,
+        message: `Du betrittst ${roomName}. Komplett leer heute.`,
+        consumed: true,
+      };
+      return;
+    }
 
-  const voiceHtml = VOICE_CHANNELS.map((ch,i) => {
-    const members = dist[ch];
-    const isActive = members.length > 0;
-    const memberHtml = members.map(m => `
-      <div class="dc-voice-member">
-        <div class="dc-member-av" style="background:${m.color}">${m.emoji}</div>
-        <span class="dc-member-name">${m.name}</span>
-        <span class="dc-member-mic">🎤</span>
-      </div>`).join('');
-    return `
-    <div class="dc-ch dc-voice ${isActive?'dc-voice-active':''}">
-      <svg class="dc-voice-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12 8a4 4 0 0 1-4 4 4 4 0 0 1-4-4V4a4 4 0 0 1 4-4 4 4 0 0 1 4 4v4zm-1.5 0V4A2.5 2.5 0 0 0 8 1.5 2.5 2.5 0 0 0 5.5 4v4A2.5 2.5 0 0 0 8 10.5 2.5 2.5 0 0 0 10.5 8zM7 14.5v-1.52A6 6 0 0 1 2 7H3.5a4.5 4.5 0 0 0 9 0H14a6 6 0 0 1-5 5.98v1.52h-2z"/></svg>
-      <span class="dc-ch-name">${ch}</span>
-      ${isActive?`<span class="dc-vc-count">${members.length}</span>`:''}
-    </div>
-    ${memberHtml}`;
-  }).join('');
+    const success = Math.random() < 0.40;
+    if (success) {
+      let idx = Math.floor(Math.random() * DISCORD_OVERHEAR_POOL.length);
+      if (DISCORD_OVERHEAR_POOL.length > 1 && idx === lastPickedConversationIdx) {
+        idx = (idx + 1) % DISCORD_OVERHEAR_POOL.length;
+      }
+      lastPickedConversationIdx = idx;
+      const convo = DISCORD_OVERHEAR_POOL[idx];
+      roomResults[roomName] = {
+        hasMembers: true,
+        success: true,
+        points: randomInt(convo.min, convo.max),
+        message: `Du lauschst in ${roomName}: ${convo.msg}`,
+        consumed: false,
+      };
+    } else {
+      roomResults[roomName] = {
+        hasMembers: true,
+        success: false,
+        points: 0,
+        message: `Du betrittst ${roomName}. Heute nur Gelaber ueber Merge-Conflicts.`,
+        consumed: true,
+      };
+    }
+  });
 
-  el.innerHTML = `
-    <div class="dc-layout">
-      <div class="dc-sidebar">
-        <div class="dc-server-header">Intensivkurs-DA
-          <span class="dc-chevron">&#8964;</span>
-        </div>
-        <div class="dc-section-label">TEXT-KANÄLE</div>
-        ${textHtml}
-        <div class="dc-section-label">SPRACHKANÄLE</div>
-        ${voiceHtml}
-      </div>
-      <div class="dc-main">
-        <div class="dc-main-header">
-          <svg class="dc-voice-icon" viewBox="0 0 16 16" fill="currentColor" width="18" height="18"><path d="M12 8a4 4 0 0 1-4 4 4 4 0 0 1-4-4V4a4 4 0 0 1 4-4 4 4 0 0 1 4 4v4zm-1.5 0V4A2.5 2.5 0 0 0 8 1.5 2.5 2.5 0 0 0 5.5 4v4A2.5 2.5 0 0 0 8 10.5 2.5 2.5 0 0 0 10.5 8zM7 14.5v-1.52A6 6 0 0 1 2 7H3.5a4.5 4.5 0 0 0 9 0H14a6 6 0 0 1-5 5.98v1.52h-2z"/></svg>
-          <span>dev-meetings</span>
-        </div>
-        <div class="dc-main-body">
-          ${VOICE_CHANNELS.map(ch => `
-            <div class="dc-vc-room ${dist[ch].length?'dc-vc-room-active':''}">
-              <div class="dc-vc-room-title">🔊 ${ch}
-                ${dist[ch].length===0?'<span class="dc-empty">(leer)</span>':''}
-              </div>
-              <div class="dc-vc-room-members">
-                ${dist[ch].map(m=>`
-                  <div class="dc-big-member">
-                    <div class="dc-big-av" style="background:${m.color};box-shadow:0 0 10px ${m.color}88">${m.emoji}</div>
-                    <div class="dc-big-name">${m.name}</div>
-                    <div class="dc-big-status">🎤 spricht gerade</div>
-                  </div>`).join('')}
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>
-    </div>`;
+  return {
+    dist,
+    activeRoom: null,
+    lastListenLog: 'Tipp: Klicke links auf einen dev-meeting Raum und lausche.',
+    listenHistory: [],
+    roomResults,
+  };
 }
 
-/* ── DA-Discord Building ─────────────────────────────────────── */
+function randomInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function enterDiscordRoom(roomName) {
+  if (gameState !== 'BUILDING' || !discordState) return;
+  discordState.activeRoom = roomName;
+
+  const result = discordState.roomResults[roomName];
+  if (!result) return;
+
+  if (!result.hasMembers) {
+    discordState.lastListenLog = result.message;
+    discordState.listenHistory.unshift(`🔇 ${result.message}`);
+    if (discordState.listenHistory.length > 8) discordState.listenHistory.length = 8;
+    showDiscordContent(document.getElementById('building-gadget'));
+    return;
+  }
+
+  if (result.success && !result.consumed) {
+    score += result.points;
+    updateHUD();
+    result.consumed = true;
+    discordState.lastListenLog = `${result.message} +${result.points} Sympathiepunkte.`;
+    discordState.listenHistory.unshift(`🎧 ${result.message} (+${result.points})`);
+    if (discordState.listenHistory.length > 8) discordState.listenHistory.length = 8;
+    // KI-Overhear-Logik: Wenn KI/Prompt/Copilot im Text, Flag setzen
+    if (DISCORD_AI_KEYWORDS.some(kw => result.message.includes(kw))) {
+      overheardAIinDiscord = true;
+      // Speichere die Namen der Studenten, die in diesem Raum waren
+      overheardAIStudentNames = (discordState.dist[roomName] || []).map(s => s.name);
+    }
+    particles.burst(player.x + TILE / 2, player.y + TILE / 2, 18, '#7dd3fc');
+    showToast(`🎧 ${roomName}: +${result.points} Sympathiepunkte`,'#7dd3fc');
+  } else if (result.success && result.consumed) {
+    discordState.lastListenLog = `${result.message} (bereits gehoert)`;
+    discordState.listenHistory.unshift(`ℹ️ ${roomName}: bereits gehoert, kein weiterer Bonus.`);
+    if (discordState.listenHistory.length > 8) discordState.listenHistory.length = 8;
+    showToast(`ℹ️ ${roomName}: Bonus schon erhalten`,'#8b949e');
+  } else {
+    discordState.lastListenLog = result.message;
+    discordState.listenHistory.unshift(`🔇 ${result.message}`);
+    if (discordState.listenHistory.length > 8) discordState.listenHistory.length = 8;
+    showToast(`🔇 ${roomName}: nichts Verwertbares mitgehoert`,'#8b949e');
+  }
+  showDiscordContent(document.getElementById('building-gadget'));
+}
+
 function showDiscordContent(el) {
-  const VOICE_CHANNELS = ['dev-meeting-1', 'dev-meeting-2', 'dev-meeting-3'];
-  const TEXT_CHANNELS  = [
-    { name: 'tickets',   emoji: '💡' },
-    { name: 'allgemein', emoji: '🌍' },
-    { name: 'talk',      emoji: '🗣️' },
-  ];
+  if (!discordState) discordState = makeDiscordState();
+  const dist = discordState.dist;
 
-  // randomly distribute students — null = offline
-  const slots = [...VOICE_CHANNELS, null, null];
-  const dist  = { 'dev-meeting-1': [], 'dev-meeting-2': [], 'dev-meeting-3': [] };
-  shuffleArray([...STUDENTS]).forEach(s => {
-    const ch = slots[Math.floor(Math.random() * slots.length)];
-    if (ch) dist[ch].push(s);
-  });
-
-  const textHtml = TEXT_CHANNELS.map(c => `
+  const textHtml = DISCORD_TEXT_CHANNELS.map(c => `
     <div class="dc-ch dc-text">
       <span class="dc-hash">#</span>
       <span class="dc-ch-name">${c.emoji} ${c.name}</span>
     </div>`).join('');
 
-  const voiceHtml = VOICE_CHANNELS.map(ch => {
+  const voiceHtml = DISCORD_VOICE_CHANNELS.map(ch => {
     const members = dist[ch];
     const memberHtml = members.map(m => `
       <div class="dc-voice-member">
@@ -779,7 +1106,7 @@ function showDiscordContent(el) {
         <span class="dc-member-mic">🎤</span>
       </div>`).join('');
     return `
-    <div class="dc-ch dc-voice ${members.length ? 'dc-voice-active' : ''}">
+    <div class="dc-ch dc-voice dc-voice-enter ${members.length ? 'dc-voice-active' : ''} ${discordState.activeRoom===ch ? 'dc-voice-current' : ''}" onclick="enterDiscordRoom('${ch}')">
       <span class="dc-voice-icon">🔊</span>
       <span class="dc-ch-name">${ch}</span>
       ${members.length ? `<span class="dc-vc-count">${members.length}</span>` : ''}
@@ -797,27 +1124,19 @@ function showDiscordContent(el) {
         ${voiceHtml}
         <div class="dc-user-bar">
           <div class="dc-user-av">🧑‍💻</div>
-          <span class="dc-user-name">björn_dev</span>
+          <span class="dc-user-name">bjoern_dev</span>
           <span class="dc-user-status">🟢</span>
         </div>
       </div>
       <div class="dc-main">
-        <div class="dc-main-header">🔊 dev-meetings</div>
+        <div class="dc-main-header">🎧 Gespraechs-Log <span class="dc-tip">30% Chance auf Bonus beim Raumbeitritt</span></div>
         <div class="dc-main-body">
-          ${VOICE_CHANNELS.map(ch => `
-            <div class="dc-vc-room ${dist[ch].length ? 'dc-vc-room-active' : ''}">
-              <div class="dc-vc-room-title">🔊 ${ch}
-                ${dist[ch].length === 0 ? '<span class="dc-empty">— leer</span>' : ''}
-              </div>
-              <div class="dc-vc-room-members">
-                ${dist[ch].map(m => `
-                  <div class="dc-big-member">
-                    <div class="dc-big-av" style="background:${m.color};box-shadow:0 0 8px ${m.color}99">${m.emoji}</div>
-                    <div class="dc-big-name">${m.name}</div>
-                    <div class="dc-big-status">🎤 verbunden</div>
-                  </div>`).join('')}
-              </div>
-            </div>`).join('')}
+          <div class="dc-listen-log ${discordState.activeRoom ? 'dc-listen-log-active' : ''}">${discordState.lastListenLog}</div>
+          <div class="dc-log-list">
+            ${discordState.listenHistory.length
+              ? discordState.listenHistory.map(entry => `<div class="dc-log-item">${entry}</div>`).join('')
+              : '<div class="dc-log-empty">Noch keine Gespräche mitgehört.</div>'}
+          </div>
         </div>
       </div>
     </div>`;
@@ -845,6 +1164,20 @@ function gameLoop() {
     if(moved) inputCooldown=4;
   }
   player.update();
+  // Banane einsammeln → Kevin triggern
+  if(bananaTile&&!kevin&&player.col===bananaTile.col&&player.row===bananaTile.row) triggerKevin();
+  // Alle 30s neue Banane spawnen (nur wenn kein Kevin aktiv)
+  if(!kevin&&Date.now()-bananaSpawnTimer>=30000){
+    bananaSpawnTimer=Date.now();
+    const used=new Set();
+    used.add(`${player.col},${player.row}`);
+    students.forEach(s=>used.add(`${s.col},${s.row}`));
+    if(bananaTile) used.add(`${bananaTile.col},${bananaTile.row}`);
+    spawnBananaTile(used);
+    if(bananaTile) showToast('🍌 Eine neue Banane ist irgendwo auf der Karte aufgetaucht...','#ffcc00');
+  }
+  // Kevin aktualisieren
+  if(kevin) kevin.update(map,students);
   if(!player.moving){for(const s of students){if(s.interacted) continue;if(Math.abs(s.col-player.col)+Math.abs(s.row-player.row)===1){triggerEncounter(s);break;}}}
   students.forEach(s=>s.update(player.col,player.row));
   drawWorld(); particles.update(); particles.draw();
@@ -855,8 +1188,30 @@ function drawWorld() {
   const ctx=gCtx; ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) tileRenderers[map[r][c]](ctx,c*TILE,r*TILE);
   drawBuildings(ctx);
-  const sprites=[{y:player.y,draw:()=>player.drawOn(ctx)},...students.map(s=>({y:s.y,draw:()=>s.drawOn(ctx)}))];
-  sprites.sort((a,b)=>a.y-b.y).forEach(s=>s.draw());
+  // Bananen-Pickup auf der Map (pulsierend)
+  if(bananaTile){
+    const bx=bananaTile.col*TILE, by=bananaTile.row*TILE;
+    const pulse=0.65+0.35*Math.sin(Date.now()/180);
+    ctx.save();
+    ctx.shadowBlur=22*pulse; ctx.shadowColor='#ffdd00';
+    ctx.globalAlpha=0.9;
+    ctx.font=`${Math.round(TILE*0.65)}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🍌',bx+TILE/2,by+TILE/2);
+    ctx.restore();
+    // Warnung: Fragezeichen-Label
+    ctx.save();
+    ctx.globalAlpha=pulse*0.9;
+    ctx.fillStyle='#ffdd00';
+    ctx.font="bold 8px 'Share Tech Mono'";
+    ctx.textAlign='center';
+    ctx.shadowBlur=8; ctx.shadowColor='#ffaa00';
+    ctx.fillText('???',bx+TILE/2,by-3);
+    ctx.restore();
+  }
+  // Sprites sortiert nach Y (Kevin miteinbeziehen)
+  const sprites=[{y:player.y,draw:()=>player.drawOn(ctx)},...students.filter(s=>!s.eaten).map(s=>({y:s.y,draw:()=>s.drawOn(ctx)}))];
+  if(kevin) sprites.push({y:kevin.y+TILE,draw:()=>kevin.drawOn(ctx)});  sprites.sort((a,b)=>a.y-b.y).forEach(s=>s.draw());
   // player glow
   ctx.save(); ctx.globalAlpha=.3; ctx.fillStyle='#00ff88'; ctx.beginPath(); ctx.ellipse(player.x+TILE/2,player.y+TILE-4,TILE/3,4,0,0,Math.PI*2); ctx.fill(); ctx.restore();
   // door hint
@@ -876,7 +1231,21 @@ function triggerEncounter(student) {
   feedbackChoices=shuffleArray([...currentProject.bjoernFeedback]);
   document.getElementById('student-name-display').textContent=student.data.name;
   const qLabel={clean:'✅ Sauber',ok:'🤔 Solide',chaos:'🔥 Chaos-Code'}[currentProject.quality];
-  document.getElementById('speech-text').innerHTML=`Hier mein <strong>${currentProject.name}</strong>!<br><span style="font-size:10px;opacity:.75">${currentProject.description}</span><br><span class="project-quality-badge quality-${currentProject.quality}">${qLabel}</span>`;
+  const speechVariants = [
+    `Hier mein <strong>${currentProject.name}</strong>!`,
+    `Ich hab an <strong>${currentProject.name}</strong> gearbeitet!`,
+    `Das ist mein Projekt <strong>${currentProject.name}</strong>!`,
+    `Schau mal auf <strong>${currentProject.name}</strong>!`
+  ];
+  const subtitleVariants = [
+    `${student.data.name} braucht Björns Feedback!`,
+    `${student.data.name} wartet auf ein ehrliches Review!`,
+    `${student.data.name} moechte eine schnelle Code-Analyse!`,
+    `${student.data.name} ist bereit fuer die naechste Feedback-Runde!`
+  ];
+  const speechIntro = pickRandom(speechVariants);
+  const subtitle = pickRandom(subtitleVariants);
+  document.getElementById('speech-text').innerHTML=`${speechIntro}<br><span style="font-size:10px;opacity:.75">${currentProject.description}</span><br><span class="project-quality-badge quality-${currentProject.quality}">${qLabel}</span>`;
   feedbackChoices.forEach((f,i)=>{
     const btn=document.getElementById(`btn-${i}`);
     const pre=f.type==='praise'?'🌟 ':f.type==='coach'?'🎯 ':'😅 ';
@@ -886,7 +1255,7 @@ function triggerEncounter(student) {
   drawEncounterStudent(document.getElementById('student-avatar'),student.data);
   drawEncounterBjoern(document.getElementById('bjoern-avatar'));
   document.getElementById('encounter-title').textContent=`\ud83d\udcc1 ${currentProject.name}`;
-  document.getElementById('encounter-subtitle').textContent=`${student.data.name} braucht Björns Feedback!`;
+  document.getElementById('encounter-subtitle').textContent=subtitle;
   const ui=document.getElementById('encounter-ui'); ui.classList.remove('hidden');
   document.getElementById('feedback-options').classList.remove('hidden');
   document.getElementById('feedback-result').classList.add('hidden');
@@ -895,7 +1264,25 @@ function triggerEncounter(student) {
 
 function selectFeedback(idx) {
   if(gameState!=='ENCOUNTER') return;
-  const choice=feedbackChoices[idx]; let pts=choice.points;
+  const choice=feedbackChoices[idx];
+  let pts=choice.points;
+  let aiBonus = 0;
+  let aiBonusAwarded = false;
+  // KI-Overhear-Bonus: Nur bei positivem Feedback (praise/coach) UND nur für Studenten, die im Discord-Raum waren
+  if (
+    overheardAIinDiscord &&
+    (choice.type==='praise'||choice.type==='coach') &&
+    pts>0 &&
+    currentStudent &&
+    overheardAIStudentNames.includes(currentStudent.data.name)
+  ) {
+    aiBonus = 12; // Bonuswert kann angepasst werden
+    pts += aiBonus;
+    overheardAIinDiscord = false;
+    overheardAIStudentNames = [];
+    aiBonusAwarded = true;
+    showToast('🤖 KI erkannt! Bonus: +12 Sympathiepunkte','#00ff88');
+  }
   if(activeBonus>0&&pts>0){pts+=activeBonus;activeBonus=0;}
   score+=pts; if(score<0) score=0; updateHUD();
   if(pts>0) particles.burst(player.x+TILE/2,player.y+TILE/2,40);
@@ -903,7 +1290,11 @@ function selectFeedback(idx) {
   document.getElementById('feedback-options').classList.add('hidden');
   const result=document.getElementById('feedback-result'); result.classList.remove('hidden');
   const rText=pts>=40?'🔥 LEGENDÄRES FEEDBACK!':pts>=20?'💚 Gutes Feedback!':pts>=5?'😐 Na ja…':'❌ Das hätte besser sein können.';
-  document.getElementById('result-text').innerHTML=`<div class="result-bjoern-quote"><strong>${choice.intro}</strong>${choice.critique?`<br><em>"${choice.critique}"</em>`:''}</div><div class="result-reaction">${rText}</div>`;
+  let bonusText = '';
+  if (aiBonusAwarded) {
+    bonusText = '<div class="ai-bonus-msg" style="color:#00ff88;font-size:13px;margin-top:6px;">BONUS: Björn schätzt ehrliches Feedback – trotz KI-Einsatz!<br>Zusätzliche Sympathiepunkte für Fairness.</div>';
+  }
+  document.getElementById('result-text').innerHTML=`<div class=\"result-bjoern-quote\"><strong>${choice.intro}</strong>${choice.critique?`<br><em>\"${choice.critique}\"</em>`:''}</div><div class=\"result-reaction\">${rText}</div>${bonusText}`;
   const pEl=document.getElementById('points-gained');
   pEl.textContent=pts>0?`+${pts} Sympathiepunkte!`:`${pts} Sympathiepunkte`;
   pEl.style.color=pts>0?'var(--cyan)':'#ff4444'; pEl.style.textShadow=pts>0?'0 0 20px var(--cyan)':'0 0 20px #ff4444';
